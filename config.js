@@ -1,0 +1,1 @@
+const config = {'language' : 'hun'}

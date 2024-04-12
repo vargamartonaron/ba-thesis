@@ -1,0 +1,14 @@
+body {
+    background-color: black;
+  }
+  .jspsych-display-element {
+    font-size: 23px;
+    color: white;
+  }
+  .jspsych-content {
+    max-width: 80%;
+    
+  }
+  .stim {
+    font-size: 80px; 
+  }
