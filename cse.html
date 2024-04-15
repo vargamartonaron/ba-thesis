@@ -28,7 +28,7 @@
 
 </body>
 <script>
-fetch('http://metasciencelab.hu/generate-trials')
+fetch('http://metasciencelab.hu:3000/generate-trials')
  .then(response => response.json())
  .then(data => {
    
@@ -69,12 +69,6 @@ fetch('http://metasciencelab.hu/generate-trials')
   })
 
   // generate random participant id
-  var participant_id = jsPsych.randomization.randomID(15);
-
-  jsPsych.data.addProperties({
-    participant_id: participant_id,
-  });
-
 
   var informedProceed = true
   var debug = 0
@@ -571,7 +565,16 @@ fetch('http://metasciencelab.hu/generate-trials')
   // flip a coin for order of conditions
   var coinflip = Math.random() > 0.5;
 
+  var participant_id = jsPsych.randomization.randomID(15);
+
+  jsPsych.data.addProperties({
+    participant_id: participant_id,
+  });
+
   if (coinflip) {
+    jsPsych.data.addProperties({
+      first_condition: 'negative_first',
+    });
     timeline.push(
       fullscreen_trial,
       informedScreen,
@@ -589,6 +592,9 @@ fetch('http://metasciencelab.hu/generate-trials')
       fullscreen_exit_trial
     )
   } else {
+    jsPsych.data.addProperties({
+      first_condition: 'positive_first',
+    });
     timeline.push(
       fullscreen_trial,
       informedScreen,
