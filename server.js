@@ -7,7 +7,7 @@ const app = express();
 const cors = require('cors');
 const port = 3000;
 
-const whitelist = ['http://localhost:3000'];
+const whitelist = ['http://localhost:3000', 'http://metasciencelab.hu:3000'];
 const corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1) {
