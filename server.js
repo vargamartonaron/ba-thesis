@@ -7,10 +7,20 @@ const app = express();
 const cors = require('cors');
 const port = 3000;
 
+const whitelist = ['http://localhost:3000'];
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+}
 // Serve static files from the current directory
 app.use(express.static(__dirname));
 app.use(bodyParser.json({ limit: '50mb' }));
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(function(req, res, next) {
   res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
   res.header('Access-Control-Allow-Origin', 'http://metasciencelab.hu');
