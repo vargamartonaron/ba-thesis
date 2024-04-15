@@ -3,24 +3,14 @@ const fs = require('fs');
 const bodyParser = require('body-parser');
 const { exec } = require('child_process');
 const path = require('path');
-const app = express();
 const cors = require('cors');
+const app = express();
+app.use(cors());
 const port = 3000;
 
-const whitelist = ['http://localhost:3000', 'http://metasciencelab.hu:3000'];
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (whitelist.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  }
-}
 // Serve static files from the current directory
 app.use(express.static(__dirname));
 app.use(bodyParser.json({ limit: '50mb' }));
-app.use(cors());
 // Endpoint to run the Python script and serve the generated data
 app.get('/generate-trials', cors(), (req, res) => {
  exec('python3 gen_trials.py', {maxBuffer: undefined}, (error, stdout, stderr) => {
