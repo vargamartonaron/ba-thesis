@@ -4,11 +4,18 @@ const bodyParser = require('body-parser');
 const { exec } = require('child_process');
 const path = require('path');
 const app = express();
+const cors = require('cors');
 const port = 3000;
+
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  optionsSuccessStatus: 200
+  };
 
 // Serve static files from the current directory
 app.use(express.static(__dirname));
 app.use(bodyParser.json({ limit: '50mb' }));
+app.use(cors(corsOptions));
 
 // Endpoint to run the Python script and serve the generated data
 app.get('/generate-trials', (req, res) => {
