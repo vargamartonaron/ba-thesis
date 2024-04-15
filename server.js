@@ -13,6 +13,7 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(cors());
 app.use(function(req, res, next) {
   res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+  res.header('Access-Control-Allow-Origin', 'http://metasciencelab.hu');
   res.header('Access-Control-Allow-Origin', 'http://localhost:3000/generate-trials');
   res.header('Access-Control-Allow-Headers', true);
   res.header('Access-Control-Allow-Credentials', true);
