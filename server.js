@@ -22,7 +22,7 @@ app.use(function(req, res, next) {
 });
 
 // Endpoint to run the Python script and serve the generated data
-app.get('/generate-trials', (req, res) => {
+app.get('/generate-trials', cors(), (req, res) => {
  exec('python3 gen_trials.py', {maxBuffer: undefined}, (error, stdout, stderr) => {
     if (error) {
       console.log(`error: ${error.message}`);
