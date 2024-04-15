@@ -7,22 +7,17 @@ const app = express();
 const cors = require('cors');
 const port = 3000;
 
-const corsOptions = {
-  origin: 'http://localhost:3000',
-  optionsSuccessStatus: 200
-  };
-
 // Serve static files from the current directory
 app.use(express.static(__dirname));
 app.use(bodyParser.json({ limit: '50mb' }));
-app.use(cors(corsOptions));
-app.use(function(req, res, next) {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
-  res.header('Access-Control-Allow-Headers', true);
-  res.header('Access-Control-Allow-Credentials', true);
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-  next();
-});
+app.use(cors());
+// app.use(function(req, res, next) {
+//   res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+//   res.header('Access-Control-Allow-Headers', true);
+//   res.header('Access-Control-Allow-Credentials', true);
+//   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+//   next();
+// });
 
 // Endpoint to run the Python script and serve the generated data
 app.get('/generate-trials', (req, res) => {
