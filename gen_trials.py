@@ -21,11 +21,10 @@ practice_words = pd.DataFrame({'translation': [generate_random_string(7) for _ i
 neg_words_block_1 = neg_words.sample(n=20)
 neu_words_block_1 = neu_words.sample(n=20)
 pos_words_block_1 = pos_words.sample(n=20)
-
 # Generate 80 rows of data for each list, each word is repeated 4 times, then shuffle the rows
-neg_words_block_1 = pd.concat([neg_words]*4, ignore_index=True).sample(frac=1)
-neu_words_block_1 = pd.concat([neu_words]*4, ignore_index=True).sample(frac=1)
-pos_words_block_1 = pd.concat([pos_words]*4, ignore_index=True).sample(frac=1)
+neg_words_block_1 = pd.concat([neg_words_block_1]*4, ignore_index=True).sample(frac=1)
+neu_words_block_1 = pd.concat([neu_words_block_1]*4, ignore_index=True).sample(frac=1)
+pos_words_block_1 = pd.concat([pos_words_block_1]*4, ignore_index=True).sample(frac=1)
 
 # Choose 20 words from each list without repetition
 neg_words_block_2 = neg_words.sample(n=20)
@@ -33,9 +32,9 @@ neu_words_block_2 = neu_words.sample(n=20)
 pos_words_block_2 = pos_words.sample(n=20)
 
 # Generate 80 rows of data for each list, each word is repeated 4 times, then shuffle the rows
-neg_words_block_2 = pd.concat([neg_words]*4, ignore_index=True).sample(frac=1)
-neu_words_block_2 = pd.concat([neu_words]*4, ignore_index=True).sample(frac=1)
-pos_words_block_2 = pd.concat([pos_words]*4, ignore_index=True).sample(frac=1)
+neg_words_block_2 = pd.concat([neg_words_block_2]*4, ignore_index=True).sample(frac=1)
+neu_words_block_2 = pd.concat([neu_words_block_2]*4, ignore_index=True).sample(frac=1)
+pos_words_block_2 = pd.concat([pos_words_block_2]*4, ignore_index=True).sample(frac=1)
 
 # Function to randomize correct responses mapping and color axes
 def group_participants():
