@@ -51,7 +51,7 @@ fetch('http://metasciencelab.hu:3000/generate-trials')
   $.ajax({
     type: 'post',
     cache: false,
-    url: 'http://localhost:3000/save-data',
+    url: 'http://metasciencelab.hu:3000/save-data',
     contentType: 'application/json',
     data: data,
   });
@@ -62,8 +62,6 @@ fetch('http://metasciencelab.hu:3000/generate-trials')
     on_finish: function () {
       console.log(jsPsych.data.get())
       saveData(JSON.stringify(jsPsych.data.get()));
-      
-      jsPsych.data.displayData();
     },
     override_safe_mode: true
   })
@@ -141,6 +139,7 @@ fetch('http://metasciencelab.hu:3000/generate-trials')
       on_finish: function (data) {
         // agree is 0, not agree is 1 as a response
         if (data.response === 0) {
+          document.documentElement.requestFullscreen();
           consentProceed = true
         } else {
           consentProceed = false
@@ -286,6 +285,9 @@ fetch('http://metasciencelab.hu:3000/generate-trials')
     data: {
       task: 'survey'
     },
+    on_finish: function () {
+      document.body.classList.add('hide_cursor');
+      }
   }
 
   var fullscreen_trial = {
@@ -295,11 +297,11 @@ fetch('http://metasciencelab.hu:3000/generate-trials')
     message: exp_text['fullscreen_text'][lang]
   }
 
+  
   var fullscreen_exit_trial = {
     type: jsPsychFullscreen,
     fullscreen_mode: false
   }
-
 
   var pause = {
     type: jsPsychHtmlKeyboardResponse,
@@ -372,6 +374,7 @@ fetch('http://metasciencelab.hu:3000/generate-trials')
     data: {
       task: 'blank'
     },
+    css_classes: ['blank'],
     save_trial_parameters: {
       stimulus: false,
       choices: false,
