@@ -300,7 +300,6 @@ fetch('http://metasciencelab.hu:3000/generate-trials')
     fullscreen_mode: false
   }
 
-  var TestLoopIndex = 1;
 
   var pause = {
     type: jsPsychHtmlKeyboardResponse,
@@ -330,7 +329,7 @@ fetch('http://metasciencelab.hu:3000/generate-trials')
     }
   }
 
-  var PracticeLoopIndex = 1;
+  PracticeLoopIndex = 1;
 
   var test = {
     type: jsPsychHtmlKeyboardResponse,
@@ -352,11 +351,11 @@ fetch('http://metasciencelab.hu:3000/generate-trials')
       valence_sd_rating: jsPsych.timelineVariable("valence_sd_rating"),
       finger: jsPsych.timelineVariable("fingers"),
       reversed_color_axes: jsPsych.timelineVariable("reversed_color_axes"),
-      reversed_correct_responses: jsPsych.timelineVariable("reversed_correct_responses"),
-      practice_loop: PracticeLoopIndex
+      reversed_correct_responses: jsPsych.timelineVariable("reversed_correct_responses")
     },
     on_finish: function (data) {
       data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
+      data.practice_loop = PracticeLoopIndex
     },
     css_classes: ['stim']
   }
