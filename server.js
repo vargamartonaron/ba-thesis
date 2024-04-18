@@ -47,10 +47,13 @@ app.post('/save-data', (req, res) => {
         } else {
             console.log('Data appended successfully');
             res.status(200).send('Data saved successfully');
+            res.redirect('/redirect');
         }
   });
 });
-
+app.get('/redirect', (req, res) => {
+  res.redirect('https://docs.google.com/forms/d/e/1FAIpQLSd980cBWqiMlINBlgIQnFosLXZM56HzuecPs6na1a1BL6EReA/viewform?usp=sf_link');
+  });
 // Serve the cse.html file
 app.get('/', (req, res) => {
  res.sendFile(path.join(__dirname, 'cse.html'));

@@ -332,12 +332,13 @@ fetch('http://metasciencelab.hu:3000/generate-trials')
   }
 
   PracticeLoopIndex = 1;
+  TestLoopIndex = 1;
 
   var test = {
     type: jsPsychHtmlKeyboardResponse,
     stimulus: jsPsych.timelineVariable("stimulus"),
     choices: ["f", "j", "d", "k"],
-    trial_duration: 1500,
+    trial_duration: 1, //1500,
     response_ends_trial: true,
     data: {
       task: 'response',
@@ -368,7 +369,7 @@ fetch('http://metasciencelab.hu:3000/generate-trials')
     choices: "NO_KEYS",
     trial_duration: function () {
       // define a random duration between 2000 and 2500ms
-      return Math.floor(Math.random() * 500) + 2000;
+      return 0.5 //Math.floor(Math.random() * 500) + 2000;
     },
     response_ends_trial: false,
     data: {
@@ -440,7 +441,7 @@ fetch('http://metasciencelab.hu:3000/generate-trials')
       PracticeLoopIndex++
     },
     loop_function: function (data) {
-      if (accuracy >= 85) { 
+        if (accuracy >= -1 ){//85) { 
       console.log('accuracy passed') 
       return false 
     } else { 
