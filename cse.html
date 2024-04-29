@@ -62,7 +62,8 @@ fetch('http://metasciencelab.hu:3000/generate-trials')
     on_finish: function () {
       console.log(jsPsych.data.get())
       saveData(JSON.stringify(jsPsych.data.get()));
-      redirect('http://metasciencelab.hu:3000/redirect')
+      //redirect to another page
+      window.location.href = "http://metasciencelab.hu:3000/redirect"
     },
     override_safe_mode: true
   })
