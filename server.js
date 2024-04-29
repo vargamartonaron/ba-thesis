@@ -47,7 +47,6 @@ app.post('/save-data', (req, res) => {
         } else {
             console.log('Data appended successfully');
             res.status(200).send('Data saved successfully');
-            res.redirect('/redirect');
         }
   });
 });
