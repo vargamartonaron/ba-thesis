@@ -54,6 +54,9 @@ fetch('http://metasciencelab.hu:3000/generate-trials')
     url: 'http://metasciencelab.hu:3000/save-data',
     contentType: 'application/json',
     data: data,
+    success: function (data) {
+      window.location.href = 'http://metasciencelab.hu:3000/redirect';
+    }
   });
  }
 
@@ -62,8 +65,7 @@ fetch('http://metasciencelab.hu:3000/generate-trials')
     on_finish: function () {
       console.log(jsPsych.data.get())
       saveData(JSON.stringify(jsPsych.data.get()));
-      //redirect to another page
-      window.location.href = "http://metasciencelab.hu:3000/redirect"
+      //redirect to another page after data collection has finished
     },
     override_safe_mode: true
   })
