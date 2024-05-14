@@ -1,0 +1,51 @@
+---
+title: "tidy_data"
+author: "Marton A. Varga"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# load packages
+require(tidyverse)
+require(jsonlite)
+```
+
+```{r load data}
+# load csv
+df <- readr::read_csv("data/combined_data.csv", col_types = list("l", "f", "i", "d", "c", "f", "f", "d", "c", "f", "_", "f", "d", "c", "f", "f", "f", "f", "d", "d", "d", "d", "d", "d", "f", "l", "l", "?", "?"))
+```
+
+
+```{r test data}
+
+test_df <- df |>
+  dplyr::select(-success, -internal_node_id, -trial_duration, -practice_loop) |>
+  dplyr::filter(trial_type == "html-keyboard-response") |>
+  dplyr::filter(condition != "practice") |>
+  dplyr::filter(task == "response") |>
+  dplyr::select(-block, -trial_type) |>
+  dplyr::mutate(correct = as.logical(correct),
+                response = as.factor(response))
+  
+readr::write_csv(test_df, "data/test_stream.csv")
+```
+
+```{r sample data}
+sample_df <- df |>
+  dplyr::filter(trial_type == "survey") |>
+  dplyr::select(response)
+
+sample_df$response <- gsub("'", '"', sample_df$response)
+sample_df$response <- gsub("None", "null", sample_df$response)
+
+sample_df <- lapply(sample_df$response, fromJSON)
+sample_df <- as_tibble(do.call(rbind, sample_df)) |>
+  select(-P0_Q0)
+
+readr::write_csv(sample_df, "data/survey_data.csv")
+```
