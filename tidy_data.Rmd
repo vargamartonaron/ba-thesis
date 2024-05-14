@@ -17,7 +17,15 @@ require(jsonlite)
 
 ```{r load data}
 # load csv
-df <- readr::read_csv("data/combined_data.csv", col_types = list("l", "f", "i", "d", "c", "f", "f", "d", "c", "f", "_", "f", "d", "c", "f", "f", "f", "f", "d", "d", "d", "d", "d", "d", "f", "l", "l", "?", "?"))
+df <- readr::read_csv(
+  "data/combined_data.csv",
+  col_types = list(
+    "l", "f", "i", "d", "c", "f", "f",
+    "d", "c", "f", "_", "f", "d",
+    "c", "f", "f", "f", "f", "d", "d",
+    "d", "d", "d", "d", "f", "l", "l", "?", "?"
+  )
+)
 ```
 
 
@@ -31,7 +39,7 @@ test_df <- df |>
   dplyr::select(-block, -trial_type) |>
   dplyr::mutate(correct = as.logical(correct),
                 response = as.factor(response))
-  
+
 readr::write_csv(test_df, "data/test_stream.csv")
 ```
 
