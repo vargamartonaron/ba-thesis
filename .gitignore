@@ -1,3 +1,7 @@
 jspsych/
 jspsych
 node_modules/
+data/
+package.json
+package-lock.json
+
