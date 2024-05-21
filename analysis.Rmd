@@ -1,0 +1,191 @@
+---
+title: "analysis"
+author: "Marton A. Varga"
+date: "2024-05-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+library(tidyverse)
+library(papaja)
+library(viridis)
+```
+
+```{r read data}
+tidy_df <- readr::read_csv("data/test_stream.csv")
+```
+
+
+```{r generate prev trial data}
+tidy_df <- tidy_df |>
+  dplyr::arrange(participant_id, as.numeric(trial_index)) |>
+  dplyr::mutate(prev_congruency = dplyr::lag(congruency),
+                prev_rt = dplyr::lag(rt))
+```
+
+```{r generate accuracy data}
+
+acc_df <- tidy_df |>
+  dplyr::group_by(participant_id) |>
+  dplyr::reframe(participant_accuracy_mean = mean(as.numeric(correct)),
+                participant_accuracy_sd = sd(as.numeric(correct))) |>
+  dplyr::mutate(conditional_acc_mean = mean(participant_accuracy_mean),
+                conditional_acc_sd = sd(participant_accuracy_sd)) |>
+  dplyr::mutate(participant_acc_z = (participant_accuracy_mean - conditional_acc_mean) / conditional_acc_sd)
+
+dropped_participants <- acc_df |>
+  dplyr::filter(participant_acc_z <= -1.5) |>
+  dplyr::select(participant_id) |>
+  as_vector()
+
+tidy_df <- tidy_df |>
+  dplyr::group_by(participant_id) |>
+  dplyr::filter(!(participant_id %in% dropped_participants))
+```
+
+
+```{r filter correct and non-first}
+tidy_df <- tidy_df |>
+  dplyr::filter(first_trial != 1) |>
+  dplyr::filter(correct == TRUE)
+
+```
+
+```{r outliers}
+tidy_df <- tidy_df |>
+  dplyr::group_by(participant_id, congruency) |>
+  dplyr::mutate(conditional_mean_rt = mean(rt),
+                conditional_sd_rt = sd(rt)) |>
+  dplyr::mutate(rt_z = (rt - conditional_mean_rt) / conditional_sd_rt) |>
+  dplyr::mutate(drop_outlier = ifelse(abs(rt_z) >= 3, 1, 0)) |>
+  dplyr::filter(drop_outlier != 1)
+```
+
+```{r base ce plot}
+ce_rt_data <- tidy_df |>
+  dplyr::group_by(congruency) |>
+  dplyr::reframe(N = n(),
+                 rt = rt,
+                 mean_rt = mean(rt),
+                 sd_rt = sd(rt),
+                 se_rt = sd_rt / sqrt(N))
+
+ce_rt_plot <- ce_rt_data |>
+  ggplot() +
+  aes(x = factor(congruency, levels = c("congruent", "incongruent")), y = rt, fill = factor(congruency, levels = c("congruent", "incongruent"))) +
+  scale_x_discrete(labels = c("Congruent", "Incongruent")) +
+  scale_fill_discrete(labels = c("Conguent", "Incongruent"), type = rocket(n = 2, alpha = 1, begin = 0, end = 1)) +
+  geom_violin(trim = TRUE, bounds = c(0, Inf)) +
+  geom_boxplot(width = .1, colour = c("white", "black"), outlier.shape = NA) +
+  labs(x = "Congruency",
+       y = "Reaction time (ms)",
+       fill = "Congruency") +
+  papaja::theme_apa(base_family = "Times") +
+  theme(legend.position = "none")
+
+ggsave("plots/ce_rt_plot.png", plot = ce_rt_plot, width = 16, height = 9, units = "cm", dpi = 320)
+
+print(ce_rt_plot)
+```
+
+```{r ce plot among conditions}
+ce_rt_data_cond <- tidy_df |>
+  dplyr::group_by(congruency, condition) |>
+  dplyr::reframe(N = n(),
+                 rt = rt,
+                 mean_rt = mean(rt),
+                 sd_rt = sd(rt),
+                 se_rt = sd_rt / sqrt(N))
+
+ce_rt_plot_cond <- ce_rt_data_cond |>
+  ggplot() +
+  aes(x = factor(condition, levels = c("positive", "neutral", "negative")), y = rt, fill = congruency) +
+  scale_x_discrete(labels = c("Positive", "Neutral", "Negative")) +
+  scale_fill_discrete(labels = c("Conguent", "Incongruent"), type = rocket(n = 2, alpha = 1, begin = 0, end = 1)) +
+  geom_violin(trim = TRUE, bounds = c(0, Inf)) +
+  geom_boxplot(width = .1, position = position_dodge(width = 0.9), colour = rep(c("white", "black"), 3), outlier.shape = NA) +
+  labs(x = "Condition",
+       y = "Reaction time (ms)",
+       fill = "Congruency") +
+  papaja::theme_apa(base_family = "Times") +
+  theme(legend.location = "plot")
+
+ggsave("plots/ce_rt_plot_cond.png", plot = ce_rt_plot_cond, width = 16, height = 9, units = "cm", dpi = 320)
+print(ce_rt_plot_cond)
+```
+
+```{r base cse plot}
+cse_rt_data <- tidy_df |>
+  dplyr::group_by(congruency, prev_congruency) |>
+  dplyr::reframe(N = n(),
+                   mean_rt = mean(rt),
+                   sd_rt = sd(rt),
+                   se_rt = sd_rt / sqrt(N))
+
+cse_rt_plot <- cse_rt_data |>
+  ggplot() +
+  aes(x=factor(prev_congruency, levels=c("congruent", "incongruent")), y=mean_rt, group=factor(congruency,level=c("congruent", "incongruent"))) +
+  geom_point(size=1.5) +
+  geom_path(linewidth=0.7, aes(linetype=congruency)) +
+  scale_linetype_manual(values=c("solid", "dashed"), labels=c("Congruent", "Incongruent")) +
+  geom_errorbar(linewidth=0.5,aes(ymin=mean_rt-se_rt,
+                    ymax=mean_rt+se_rt,
+                    width=.1)) +
+  papaja::theme_apa(base_family = "Times") +
+  labs(x="Previous Congruency",
+       y= "Reaction time (ms)",
+       shape="Current Congruency",
+       linetype="Current Congruency") +
+  scale_x_discrete(labels = c("Congruent", "Incongruent")) +
+  theme(legend.key.width = unit(1.5,"cm")) +
+  theme(legend.text = element_text(size=6),
+        legend.title = element_text(size=10),
+        legend.justification = c(0.5, 0.5),
+        legend.direction = "vertical")
+
+ggsave("plots/cse_rt_plot.png", plot = cse_rt_plot, width = 16, height = 9, units = "cm", dpi = 320)
+print(cse_rt_plot)
+```
+
+```{r conditioned cse plot}
+cse_rt_data_cond <- tidy_df |>
+  dplyr::group_by(congruency, prev_congruency, condition) |>
+  dplyr::reframe(N = n(),
+                   mean_rt = mean(rt),
+                   sd_rt = sd(rt),
+                   se_rt = sd_rt / sqrt(N))
+
+cse_rt_plot_cond <- cse_rt_data_cond |>
+  ggplot() +
+  aes(x=factor(prev_congruency, levels=c("congruent", "incongruent")), y=mean_rt, group=factor(congruency,level=c("congruent", "incongruent"))) +
+  geom_point(size=1.5) +
+  geom_path(linewidth=0.7, aes(linetype=congruency)) +
+  scale_linetype_manual(values=c("solid", "dashed"), labels=c("Congruent", "Incongruent")) +
+  geom_errorbar(linewidth=0.5,aes(ymin=mean_rt-se_rt,
+                    ymax=mean_rt+se_rt,
+                    width=.2)) +
+  papaja::theme_apa(base_family = "Times") +
+  facet_grid(cols = vars(condition), labeller = labeller(condition = c(negative = "Negative", neutral = "Neutral", positive = "Positive"))) +
+  labs(x="Previous Congruency",
+       y= "Reaction time (ms)",
+       shape="Current Congruency",
+       linetype="Current Congruency") +
+  scale_x_discrete(labels = c("Congruent", "Incongruent")) +
+  scale_y_continuous(n.breaks = 6, limits = c(750, 830)) +
+  theme(legend.key.width = unit(1,"cm")) +
+  theme(legend.text = element_text(size=8),
+        legend.title = element_text(size=10),
+        legend.justification = c(0.5, 0.5),
+        legend.direction = "vertical",
+        axis.text.x = element_text(size=6),
+        axis.title = element_text(size=8),
+        strip.text.x.top = element_text(size=6))
+
+ggsave("plots/cse_rt_plot_cond.png", plot = cse_rt_plot_cond, width = 16, height = 9, units = "cm", dpi = 320)
+print(cse_rt_plot_cond)
+```
+

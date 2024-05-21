@@ -11,8 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 # load packages
-require(tidyverse)
-require(jsonlite)
+library(tidyverse)
+library(jsonlite)
 ```
 
 ```{r load data}
@@ -28,11 +28,11 @@ df <- readr::read_csv(
 )
 ```
 
-
 ```{r test data}
 
 test_df <- df |>
   dplyr::select(-success, -internal_node_id, -trial_duration, -practice_loop) |>
+  dplyr::mutate(first_trial = dplyr::lag(task, n = 2) %in% c("pause", "pause_practice")) |>
   dplyr::filter(trial_type == "html-keyboard-response") |>
   dplyr::filter(condition != "practice") |>
   dplyr::filter(task == "response") |>
@@ -52,7 +52,7 @@ sample_df$response <- gsub("'", '"', sample_df$response)
 sample_df$response <- gsub("None", "null", sample_df$response)
 
 sample_df <- lapply(sample_df$response, fromJSON)
-sample_df <- as_tibble(do.call(rbind, sample_df)) |>
+sample_df <- tibble::as_tibble(do.call(rbind, sample_df)) |>
   select(-P0_Q0)
 
 readr::write_csv(sample_df, "data/survey_data.csv")
