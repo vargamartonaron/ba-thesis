@@ -507,8 +507,8 @@ ce_fit <- brm(formula = h_ce_formula, data = train_df, prior = h_ce_priors, seed
 
 ```{r cse model}
 h_cse_priors <- c(
-  set_prior("normal(0, 30)", class = "b", coef = "congruencyincongruent"),
-  set_prior("normal(0, 15)", class = "b", coef = "prev_congruencyincongruent"),
+  set_prior("normal(0, 60)", class = "b", coef = "congruencyincongruent"),
+  set_prior("normal(0, 30)", class = "b", coef = "prev_congruencyincongruent"),
   set_prior("student_t(3, 0, 10)", class = "sd"),
   set_prior("lkj(2)", class = "cor")
 )
@@ -523,9 +523,10 @@ h_cse_fit <- brm(formula = h_cse_formula, data = train_df, prior = h_cse_priors,
 h_cse_conditions_priors <- c(
   set_prior("normal(0, 60)", class = "b", coef = "congruencyincongruent"),
   set_prior("normal(0, 30)", class = "b", coef = "prev_congruencyincongruent"),
-  set_prior("normal(0, 10)", class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:condition_positive", hb = 0),
-  set_prior("normal(0, 10)", class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:condition_negative", lb = 0),
-  set_prior("normal(0, 10)", class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:condition_neutral"),
+  set_prior("normal(0, 5)", class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:condition_positive", hb = 0),
+  set_prior("normal(0, 5)", class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:condition_negative", lb = 0),
+  set_prior("normal(0, 5)", class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:condition_neutral"),
+  set_prior("normal(0, 10)", class = "b"),
   set_prior("student_t(5, 0, 10)", class = "sd"),
   set_prior("lkj(1.5)", class = "cor")
 )
@@ -543,14 +544,15 @@ train_df$time_elapsed <- as.ordered(train_df$time_elapsed)
 h_cse_conditions_time_elapsed_priors <- c(
   set_prior("normal(0, 60)", class = "b", coef = "congruencyincongruent"),
   set_prior("normal(0, 30)", class = "b", coef = "prev_congruencyincongruent"),
-  set_prior("normal(0, 10)", class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:condition_positive", hb = 0),
-  set_prior("normal(0, 10)", class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:condition_negative", lb = 0),
-  set_prior("normal(0, 10)", class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:condition_neutral"),
+  set_prior("normal(0, 5)", class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:condition_positive", hb = 0),
+  set_prior("normal(0, 5)", class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:condition_negative", lb = 0),
+  set_prior("normal(0, 5)", class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:condition_neutral"),
   set_prior("student_t(5, 0, 10)", class = "sd"),
   set_prior("lkj(1.5)", class = "cor"),
-  set_prior("normal(0, 10)", class = "b", coef = "motime_elapsed"),
-  set_prior("normal(0, 5)", class = "b", coef = "motime_elapsed:condition_positive"),
-  set_prior("normal(0, 5)", class = "b", coef = "motime_elapsed:condition_negative")
+  set_prior("normal(0, 5)", class = "b", coef = "motime_elapsed"),
+  set_prior("normal(0, 3)", class = "b", coef = "motime_elapsed:condition_positive"),
+  set_prior("normal(0, 3)", class = "b", coef = "motime_elapsed:condition_negative"),
+  set_prior("normal(0, 10)", class = "b")
 )
 
 h_cse_conditions_time_elapsed_formula <- bf(rt ~ congruency * prev_congruency * 
@@ -565,12 +567,13 @@ h_cse_conditions_time_elapsed_fit <- brm(formula = h_cse_conditions_time_elapsed
 ```{r motoric mappings model bayes}
 
 h_cse_motoric_priors <- c(
-  set_prior("normal(0, 30)", class = "b", coef = "congruencyincongruent"),
-  set_prior("normal(0, 15)", class = "b", coef = "prev_congruencyincongruent"),
+  set_prior("normal(0, 60)", class = "b", coef = "congruencyincongruent"),
+  set_prior("normal(0, 30)", class = "b", coef = "prev_congruencyincongruent"),
   set_prior("normal(0, 5)", class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:fingerindex"),
   set_prior("normal(0, 5)", class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:fingermiddle"),
   set_prior("normal(0, 5)", class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:reversed_color_axesTRUE"),
   set_prior("normal(0, 5)", class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:reversed_correct_responsesTRUE"),
+  set_prior("normal(0, 10)", class = "b"),
   set_prior("student_t(3, 0, 10)", class = "sd"),
   set_prior("lkj(2)", class = "cor")
 )
