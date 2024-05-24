@@ -1,7 +1,7 @@
 library(tidyverse)
 library(brms)
 
-train_df <- read_csv("data/train_df.csv")
+train_df <- readr::read_csv("data/train_df.csv")
 model_dir <- "models"
 
 h_cse_motoric_priors <- c(
@@ -22,4 +22,4 @@ h_cse_motoric_formula <- bf(rt ~ congruency * prev_congruency +
                       congruency * prev_congruency * finger +
                       (1 + congruency + prev_congruency | participant_id))
 
-h_cse_motoric_fit <- brm(formula = h_cse:motoric_formula, data = train_df, prior = h_cse_motoric_priors, seed = 1234, sample_prior = "yes", save_model = file.path(model_dir, "h_cse_motoric.stan"), file = file.path(model_dir, "h_cse_motoric"), init = 0, iter = 10000, warmup = 2000, cores =  16, file_refit = "on_change")
+h_cse_motoric_fit <- brm(formula = h_cse_motoric_formula, data = train_df, prior = h_cse_motoric_priors, seed = 1234, sample_prior = "yes", save_model = file.path(model_dir, "h_cse_motoric.stan"), file = file.path(model_dir, "h_cse_motoric"), init = 0, iter = 10000, warmup = 2000, cores =  16, file_refit = "on_change")
