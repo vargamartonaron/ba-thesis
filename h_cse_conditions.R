@@ -4,9 +4,6 @@ library(brms)
 train_df <- readr::read_csv("data/train_df.csv")
 model_dir <- "models"
 
-positive_half_normal_prior <- prior("gamma(2, 10)", lb = 0)
-negative_half_normal_prior <- prior("gamma(2, 10)", nl = -Inf)
-
 h_cse_conditions_priors <- c(
   set_prior("normal(0, 60)", class = "b", coef = "congruencyincongruent"),
   set_prior("normal(0, 30)", class = "b", coef = "prev_congruencyincongruent"),

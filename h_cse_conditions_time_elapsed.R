@@ -18,6 +18,6 @@ h_cse_conditions_time_elapsed_priors <- c(
   set_prior("normal(0, 10)", class = "b")
 )
 
-h_cse_conditions_time_elapsed_formula <- bf(rt ~ congruency * prev_congruency * (condition_positive + condition_negative + condition_neutral) + (mo(time_elapsed) * condition_positive) + (mo(time_elapsed) * condition_negative) + (1 + congruency + prev_congruency | participant_id))
+h_cse_conditions_time_elapsed_formula <- bf(rt ~ congruency * prev_congruency * mo(time_elapsed) + (condition_positive + condition_negative + condition_neutral) + (1 + congruency + prev_congruency | participant_id))
 
 h_cse_conditions_time_elapsed_fit <- brm(formula = h_cse_conditions_time_elapsed_formula, data = train_df, prior = h_cse_conditions_time_elapsed_priors, seed = 1234, sample_prior = "yes", save_model = file.path(model_dir, "h_cse_conditions_time_elapsed.stan"), file = file.path(model_dir, "h_cse_conditions_time_elapsed"), init = 0, iter = 10000, warmup = 2000, cores =  16, file_refit = "on_change")
