@@ -318,7 +318,7 @@ train_df <- tidy_df |>
     ) |>
   dplyr::select(-condition)
 
-readr::write_csv("data/train_df.csv")
+readr::write_csv(train_df, "data/train_df.csv")
 ```
 # BASE MODELS & Dienes BFs based on point estimates
 ```{r freq ce model Dienes BF}
@@ -331,18 +331,20 @@ ce_mean_effect <- ce_summary_coefs["congruencyincongruent", "Estimate"]
 ce_se_effect <- ce_summary_coefs["congruencyincongruent", "Std. Error"]
 
 ce_BF <- BF(sd = ce_se_effect, obtained = ce_mean_effect, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, scaleoftheory = ce_scale, tail = 1)
-ce_range <- seq(from= 0,to=ce_scale * ce_summary_coefs["(Intercept)", "Estimate"],by=0.01)
+ce_range <- seq(from= 0,to=ce_summary_coefs["(Intercept)", "Estimate"],by=0.01)
 ce_range_test <- BF_range(sd = ce_se_effect, obtained = ce_mean_effect, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, sdtheoryrange = ce_range, tail = 1)
 
 ev_for_ce <- subset(data.frame(ce_range_test), BF > 3)
 low_ce_threshold <- min(ev_for_ce$sdtheory)
 high_ce_threshold <- max(ev_for_ce$sdtheory)
-print(low_ce_threshold, high_ce_threshold, ce_BF)
+cat(low_ce_threshold, high_ce_threshold, ce_BF, sep = ", ")
 
 ```
 
 ```{r cse freq linear model Dienes BF}
-freq_cse_model <- lmer(rt ~ congruency * prev_congruency + (1 + congruency + prev_congruency | participant_id), data = train_df)
+freq_cse_model <- lmer(rt ~ congruency * prev_congruency + (1 + congruency + prev_congruency | participant_id), data = train_df, 
+                       control = lmerControl(optCtrl = list(maxfun = 10000), 
+                                             optimizer = "bobyqa"))
 
 cse_summary <- summary(freq_cse_model)
 cse_summary_coefs <- coef(cse_summary)
@@ -357,11 +359,12 @@ cse_range_test <- BF_range(sd = cse_se_effect, obtained = - cse_mean_effect, lik
 ev_for_cse <- subset(data.frame(cse_range_test), BF > 3)
 low_cse_threshold <- min(ev_for_cse$sdtheory)
 high_cse_threshold <- max(ev_for_cse$sdtheory)
-print(low_cse_threshold, high_cse_threshold, cse_BF)
+cat(low_cse_threshold, high_cse_threshold, cse_BF, sep = ", ")
 ```
 
 ```{r freq_cse_conditions_model Dienes BF}
-freq_cse_conditions_model <- lmer(rt ~ congruency * prev_congruency * (condition_negative + condition_positive + condition_neutral) + (1 + congruency + prev_congruency | participant_id), data = train_df)
+freq_cse_conditions_model <- lmer(rt ~ congruency * prev_congruency * (condition_negative + condition_positive + condition_neutral) + (1 + congruency + prev_congruency | participant_id), data = train_df, control = lmerControl(optCtrl = list(maxfun = 10000), 
+                                             optimizer = "bobyqa"))
 
 cse_conditions_summary <- summary(freq_cse_conditions_model)
 cse_conditions_summary_coefs <- coef(cse_conditions_summary)
@@ -369,56 +372,48 @@ cse_conditions_scale <- 5 # arbitrary
 
 cse_conditions_mean_effect_negative <- cse_conditions_summary_coefs["congruencyincongruent:prev_congruencyincongruent:condition_negative", "Estimate"]
 cse_conditions_mean_effect_positive <- cse_conditions_summary_coefs["congruencyincongruent:prev_congruencyincongruent:condition_positive", "Estimate"]
-cse_conditions_mean_effect_neutral <- cse_conditions_summary_coefs["congruencyincongruent:prev_congruencyincongruent:condition_neutral", "Estimate"]
 
 cse_conditions_se_effect_negative <- cse_conditions_summary_coefs["congruencyincongruent:prev_congruencyincongruent:condition_negative", "Std. Error"]
 cse_conditions_se_effect_positive <- cse_conditions_summary_coefs["congruencyincongruent:prev_congruencyincongruent:condition_positive", "Std. Error"]
-cse_conditions_se_effect_neutral <- cse_conditions_summary_coefs["congruencyincongruent:prev_congruencyincongruent:condition_neutral", "Std. Error"]
 
 cse_BF_negative <- BF(sd = cse_conditions_se_effect_negative, obtained = cse_conditions_mean_effect_negative, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, scaleoftheory = cse_conditions_scale, tail = 1)
 cse_BF_positive <- BF(sd = cse_conditions_se_effect_positive, obtained = cse_conditions_mean_effect_positive, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, scaleoftheory = cse_conditions_scale, tail = 1)
-cse_BF_neutral <- BF(sd = cse_conditions_se_effect_neutral, obtained = cse_conditions_mean_effect_neutral, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, scaleoftheory = cse_conditions_scale, tail = 2)
 
-cse_conditions_range <- seq(from= 0,to=cse_scale * cse_summary_coefs["congruencyincongruent:prev_congruencyincongruent", "Estimate"],by=0.01)
+cse_conditions_range <- seq(from= 0,to=-cse_scale * cse_mean_effect,by=0.01)
 
 cse_conditions_range_test_negative <- BF_range(sd = cse_conditions_se_effect_negative, obtained =  cse_conditions_mean_effect_negative, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, sdtheoryrange = cse_conditions_range, tail = 1)
 cse_conditions_range_test_positive <- BF_range(sd = cse_conditions_se_effect_positive, obtained =  cse_conditions_mean_effect_positive, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, sdtheoryrange = cse_conditions_range, tail = 1)
-cse_conditions_range_test_neutral <- BF_range(sd = cse_conditions_se_effect_neutral, obtained =  cse_conditions_mean_effect_neutral, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, sdtheoryrange = cse_conditions_range, tail = 2)
 
 ev_for_cse_conditions_negative <- subset(data.frame(cse_conditions_range_test_negative), BF > 3)
 low_cse_conditions_threshold_negative <- min(ev_for_cse_conditions_negative$sdtheory)
 high_cse_conditions_threshold_negative <- max(ev_for_cse_conditions_negative$sdtheory)
-print(low_cse_conditions_threshold_negative, high_cse_conditions_threshold_negative, cse_BF_negative)
+cat(low_cse_conditions_threshold_negative, high_cse_conditions_threshold_negative, cse_BF_negative, sep = ", ")
 
 ev_for_cse_conditions_positive <- subset(data.frame(cse_conditions_range_test_positive), BF > 3)
 low_cse_conditions_threshold_positive <- min(ev_for_cse_conditions_positive$sdtheory)
 high_cse_conditions_threshold_positive <- max(ev_for_cse_conditions_positive$sdtheory)
-print(low_cse_conditions_threshold_positive, high_cse_conditions_threshold_positive, cse_BF_positive)
+cat(low_cse_conditions_threshold_positive, high_cse_conditions_threshold_positive, cse_BF_positive, sep = ", ")
 
-ev_for_cse_conditions_neutral <- subset(data.frame(cse_conditions_range_test_neutral), BF > 3)
-low_cse_conditions_threshold_neutral <- min(ev_for_cse_conditions_neutral$sdtheory)
-high_cse_conditions_threshold_neutral <- max(ev_for_cse_conditions_neutral$sdtheory)
-print(low_cse_conditions_threshold_neutral, high_cse_conditions_threshold_neutral, cse_BF_neutral)
 ```
 
 ```{r freq_cse_conditions_time_elapsed_model Dienes BF}
-freq_cse_conditions_time_elapsed_model <- lmer(rt ~ congruency * prev_congruency * (condition_negative + condition_positive + condition_neutral) + (time_elapsed * condition_positive) + (time_elapsed * condition_negative) + (1 + congruency + prev_congruency | participant_id), data = train_df)
+freq_cse_conditions_time_elapsed_model <- lmer(rt ~ congruency * prev_congruency * time_elapsed * (condition_negative + condition_positive + condition_neutral) + (1 + congruency + prev_congruency | participant_id), data = train_df, control = lmerControl(optCtrl = list(maxfun = 10000), optimizer = "bobyqa"))
 
 cse_conditions_time_elapsed_summary <- summary(freq_cse_conditions_time_elapsed_model)
 cse_conditions_time_elapsed_summary_coefs <- coef(cse_conditions_time_elapsed_summary)
 cse_conditions_time_elapsed_scale <- 2 # arbitrary
 
-cse_conditions_time_elapsed_mean_effect_negative <- cse_conditions_time_elapsed_summary_coefs["congruencyincongruent:prev_congruencyincongruent:condition_negative:time_elapsed", "Estimate"]
-cse_conditions_time_elapsed_mean_effect_positive <- cse_conditions_time_elapsed_summary_coefs["congruencyincongruent:prev_congruencyincongruent:condition_positive:time_elapsed", "Estimate"]
+cse_conditions_time_elapsed_mean_effect_negative <- cse_conditions_time_elapsed_summary_coefs["congruencyincongruent:prev_congruencyincongruent:time_elapsed:condition_negative", "Estimate"]
+cse_conditions_time_elapsed_mean_effect_positive <- cse_conditions_time_elapsed_summary_coefs["congruencyincongruent:prev_congruencyincongruent:time_elapsed:condition_positive", "Estimate"]
 
-cse_conditions_time_elapsed_se_effect_negative <- cse_conditions_time_elapsed_summary_coefs["congruencyincongruent:prev_congruencyincongruent:condition_negative:time_elapsed", "Std. Error"]
-cse_conditions_time_elapsed_se_effect_positive <- cse_conditions_time_elapsed_summary_coefs["congruencyincongruent:prev_congruencyincongruent:condition_positive:time_elapsed", "Std. Error"]
+cse_conditions_time_elapsed_se_effect_negative <- cse_conditions_time_elapsed_summary_coefs["congruencyincongruent:prev_congruencyincongruent:time_elapsed:condition_negative", "Std. Error"]
+cse_conditions_time_elapsed_se_effect_positive <- cse_conditions_time_elapsed_summary_coefs["congruencyincongruent:prev_congruencyincongruent:time_elapsed:condition_positive", "Std. Error"]
 
 cse_BF_negative_time_elapsed <- BF(sd = cse_conditions_time_elapsed_se_effect_negative, obtained = cse_conditions_time_elapsed_mean_effect_negative, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, scaleoftheory = cse_conditions_time_elapsed_scale, tail = 1)
-cse_BF_positive_time_elapsed <- BF(sd = cse_conditions_time_elapsed_se_effect_positive, obtained = cse_conditions_time_elapsed_mean_effect_positive, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, scaleoftheory = cse_condition_time_elapsed_scale, tail = 1)
+cse_BF_positive_time_elapsed <- BF(sd = cse_conditions_time_elapsed_se_effect_positive, obtained = cse_conditions_time_elapsed_mean_effect_positive, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, scaleoftheory = cse_conditions_time_elapsed_scale, tail = 1)
 
-cse_conditions_time_elapsed_range_negative <- seq(from= 0,to=cse_conditions_scale * cse_conditions_summary_coefs["congruencyincongruent:prev_congruencyincongruent:condition_negative", "Estimate"],by=0.01)
-cse_conditions_time_elapsed_range_positive <- seq(from= 0,to=cse_conditions_scale * cse_conditions_summary_coefs["congruencyincongruent:prev_congruencyincongruent:condition_positive", "Estimate"],by=0.01)
+cse_conditions_time_elapsed_range_negative <- seq(from= 0,to= -cse_conditions_scale * cse_conditions_summary_coefs["congruencyincongruent:prev_congruencyincongruent:condition_negative", "Estimate"],by=0.01)
+cse_conditions_time_elapsed_range_positive <- seq(from= 0,to=-cse_conditions_scale * cse_conditions_summary_coefs["congruencyincongruent:prev_congruencyincongruent:condition_positive", "Estimate"],by=0.01)
 
 
 cse_conditions_time_elapsed_range_test_negative <- BF_range(sd = cse_conditions_time_elapsed_se_effect_negative, obtained =  cse_conditions_time_elapsed_mean_effect_negative, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, sdtheoryrange = cse_conditions_time_elapsed_range_negative, tail = 1)
@@ -427,20 +422,18 @@ cse_conditions_time_elapsed_range_test_positive <- BF_range(sd = cse_conditions_
 ev_for_cse_conditions_time_elapsed_negative <- subset(data.frame(cse_conditions_time_elapsed_range_test_negative), BF > 3)
 low_cse_conditions_time_elapsed_threshold_negative <- min(ev_for_cse_conditions_time_elapsed_negative$sdtheory)
 high_cse_conditions_time_elapsed_threshold_negative <- max(ev_for_cse_conditions_time_elapsed_negative$sdtheory)
-print(low_cse_conditions_time_elapsed_threshold_negative, high_cse_conditions_time_elapsed_threshold_negative, cse_BF_negative_time_elapsed)
+cat(low_cse_conditions_time_elapsed_threshold_negative, high_cse_conditions_time_elapsed_threshold_negative, cse_BF_negative_time_elapsed, sep = ", ")
 
 ev_for_cse_conditions_time_elapsed_positive <- subset(data.frame(cse_conditions_time_elapsed_range_test_positive), BF > 3)
 low_cse_conditions_time_elapsed_threshold_positive <- min(ev_for_cse_conditions_time_elapsed_positive$sdtheory)
 high_cse_conditions_time_elapsed_threshold_positive <- max(ev_for_cse_conditions_time_elapsed_positive$sdtheory)
-print(low_cse_conditions_time_elapsed_threshold_positive, high_cse_conditions_time_elapsed_threshold_positive, cse_BF_positive_time_elapsed)
+cat(low_cse_conditions_time_elapsed_threshold_positive, high_cse_conditions_time_elapsed_threshold_positive, cse_BF_positive_time_elapsed, sep = ", ")
 ```
 
 ```{r freq_cse_motoric_model Dienes BF}
-freq_cse_motoric_model <- lmer(rt ~ congruency * prev_congruency +
-                      congruency * prev_congruency * reversed_color_axes +
-                      congruency * prev_congruency * reversed_correct_responses +
-                      congruency * prev_congruency * finger +
-                      (1 + congruency + prev_congruency | participant_id), data = train_df)
+freq_cse_motoric_model <- lmer(rt ~ congruency * prev_congruency * reversed_color_axes * reversed_correct_responses * finger +
+                      (1 + congruency + prev_congruency | participant_id), data = train_df, control = lmerControl(optCtrl = list(maxfun = 10000), 
+                                             optimizer = "bobyqa"))
 
 cse_reversed_color_axes_summary <- summary(freq_cse_motoric_model)
 cse_reversed_color_axes_summary_coefs <- coef(cse_reversed_color_axes_summary)
@@ -451,61 +444,61 @@ cse_reversed_color_axes_se_effect <- cse_reversed_color_axes_summary_coefs["cong
 cse_reversed_correct_responses_summary <- summary(freq_cse_motoric_model)
 cse_reversed_correct_responses_summary_coefs <- coef(cse_reversed_correct_responses_summary)
 cse_reversed_correct_responses_scale <- 5 # arbitrary
-cse_reversed_correct_responses_mean_effect <- cse_reversed_correct_responses_coefs["congruencyincongruent:prev_congruencyincongruent:reversed_correct_responsesTRUE", "Estimate"]
+cse_reversed_correct_responses_mean_effect <- cse_reversed_correct_responses_summary_coefs["congruencyincongruent:prev_congruencyincongruent:reversed_correct_responsesTRUE", "Estimate"]
 cse_reversed_correct_responses_se_effect <- cse_reversed_correct_responses_summary_coefs["congruencyincongruent:prev_congruencyincongruent:reversed_correct_responsesTRUE", "Std. Error"]
 
 cse_finger_summary <- summary(freq_cse_motoric_model)
 cse_finger_summary_coefs <- coef(cse_finger_summary)
 cse_finger_scale <- 5 # arbitrary
-cse_finger_mean_effect <- cse_finger_coefs["congruencyincongruent:prev_congruencyincongruent:fingerindex", "Estimate"]
+cse_finger_mean_effect <- cse_finger_summary_coefs["congruencyincongruent:prev_congruencyincongruent:fingerindex", "Estimate"]
 cse_finger_se_effect <- cse_finger_summary_coefs["congruencyincongruent:prev_congruencyincongruent:fingerindex", "Std. Error"]
 
 cse_fingermiddle_summary <- summary(freq_cse_motoric_model)
 cse_fingermiddle_summary_coefs <- coef(cse_fingermiddle_summary)
 cse_fingermiddle_scale <- 5 # arbitrary
-cse_fingermiddle_mean_effect <- cse_fingermiddle_coefs["congruencyincongruent:prev_congruencyincongruent:fingermiddle", "Estimate"]
+cse_fingermiddle_mean_effect <- cse_fingermiddle_summary_coefs["congruencyincongruent:prev_congruencyincongruent:fingermiddle", "Estimate"]
 cse_fingermiddle_se_effect <- cse_fingermiddle_summary_coefs["congruencyincongruent:prev_congruencyincongruent:fingermiddle", "Std. Error"]
 
 
 cse_reversed_color_axes_BF <- BF(sd = cse_reversed_color_axes_se_effect, obtained = - cse_reversed_color_axes_mean_effect, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, scaleoftheory = cse_reversed_color_axes_scale, tail = 2)
 
-cse_reversed_color_axes_range <- seq(from= 0,to=cse_scale * cse_summary_coefs["congruencyincongruent", "Estimate"],by=0.01)
+cse_reversed_color_axes_range <- seq(from= 0,to=cse_mean_effect,by=0.01)
 cse_reversed_color_axes_range_test <- BF_range(sd = cse_reversed_color_axes_se_effect, obtained = - cse_reversed_color_axes_mean_effect, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, sdtheoryrange = cse_reversed_color_axes_range, tail = 2)
 
 cse_reversed_correct_responses_BF <- BF(sd = cse_reversed_correct_responses_se_effect, obtained = - cse_reversed_correct_responses_mean_effect, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, scaleoftheory = cse_reversed_correct_responses_scale, tail = 2)
 
-cse_reversed_correct_responses_range <- seq(from= 0,to=cse_scale * cse_summary_coefs["congruencyincongruent", "Estimate"],by=0.01)
-cse_reversed_correct_responses_test <- BF_range(sd = cse_reversed_correct_responses_se_effect, obtained = - cse_reversed_correct_responses_mean_effect, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, sdtheoryrange = cse_reversed_correct_responses_range, tail = 2)
+cse_reversed_correct_responses_range <- seq(from= 0,to=cse_mean_effect,by=0.01)
+cse_reversed_correct_responses_range_test <- BF_range(sd = cse_reversed_correct_responses_se_effect, obtained = - cse_reversed_correct_responses_mean_effect, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, sdtheoryrange = cse_reversed_correct_responses_range, tail = 2)
 
 cse_fingermiddle_BF <- BF(sd = cse_fingermiddle_se_effect, obtained = - cse_fingermiddle_mean_effect, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, scaleoftheory = cse_fingermiddle_scale, tail = 2)
 
-cse_fingermiddle_range <- seq(from= 0,to=cse_scale * cse_summary_coefs["congruencyincongruent", "Estimate"],by=0.01)
-cse_fingermiddle_test <- BF_range(sd = cse_fingermiddle_se_effect, obtained = - cse_fingermiddle_mean_effect, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, sdtheoryrange = cse_fingermiddle_range, tail = 2)
+cse_fingermiddle_range <- seq(from= 0,to=cse_mean_effect,by=0.01)
+cse_fingermiddle_range_test <- BF_range(sd = cse_fingermiddle_se_effect, obtained = - cse_fingermiddle_mean_effect, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, sdtheoryrange = cse_fingermiddle_range, tail = 2)
 
 cse_finger_BF <- BF(sd = cse_finger_se_effect, obtained = - cse_finger_mean_effect, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, scaleoftheory = cse_finger_scale, tail = 2)
 
-cse_finger_range <- seq(from= 0,to=cse_scale * cse_summary_coefs["congruencyincongruent", "Estimate"],by=0.01)
-cse_finger_test <- BF_range(sd = cse_finger_se_effect, obtained = - cse_finger_mean_effect, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, sdtheoryrange = cse_finger_range, tail = 2)
+cse_finger_range <- seq(from= 0,to=cse_mean_effect,by=0.01)
+cse_finger_range_test <- BF_range(sd = cse_finger_se_effect, obtained = - cse_finger_mean_effect, likelihood = "normal", modeloftheory = "normal", modeoftheory = 0, sdtheoryrange = cse_finger_range, tail = 2)
 
 ev_for_cse_reversed_color_axes <- subset(data.frame(cse_reversed_color_axes_range_test), BF > 3)
 low_cse_reversed_color_axes_threshold <- min(ev_for_cse_reversed_color_axes$sdtheory)
 high_cse_reversed_color_axes_threshold <- max(ev_for_cse_reversed_color_axes$sdtheory)
-print(low_cse_reversed_color_axes_threshold, high_cse_reversed_color_axes_threshold, cse_reversed_color_axes_BF)
+cat(low_cse_reversed_color_axes_threshold, high_cse_reversed_color_axes_threshold, cse_reversed_color_axes_BF, sep = ", ")
 
 ev_for_cse_reversed_correct_responses <- subset(data.frame(cse_reversed_correct_responses_range_test), BF > 3)
 low_cse_reversed_correct_responses_threshold <- min(ev_for_cse_reversed_correct_responses$sdtheory)
 high_cse_reversed_correct_responses_threshold <- max(ev_for_cse_reversed_correct_responses$sdtheory)
-print(low_cse_reversed_correct_responses_threshold, high_cse_reversed_correct_responses_threshold, cse_reversed_correct_responses_BF)
+cat(low_cse_reversed_correct_responses_threshold, high_cse_reversed_correct_responses_threshold, cse_reversed_correct_responses_BF, sep = ", ")
 
 ev_for_cse_finger <- subset(data.frame(cse_finger_range_test), BF > 3)
 low_cse_finger_threshold <- min(ev_for_cse_finger$sdtheory)
 high_cse_finger_threshold <- max(ev_for_cse_finger$sdtheory)
-print(low_cse_finger_threshold, high_cse_finger_threshold, cse_finger_BF)
+cat(low_cse_finger_threshold, high_cse_finger_threshold, cse_finger_BF, sep = ", ")
 
 ev_for_cse_fingermiddle <- subset(data.frame(cse_fingermiddle_range_test), BF > 3)
 low_cse_fingermiddle_threshold <- min(ev_for_cse_fingermiddle$sdtheory)
 high_cse_fingermiddle_threshold <- max(ev_for_cse_fingermiddle$sdtheory)
-print(low_cse_fingermiddle_threshold, high_cse_fingemiddler_threshold, cse_fingermiddle_BF)
+cat(low_cse_fingermiddle_threshold, high_cse_fingemiddler_threshold, cse_fingermiddle_BF, ", ")
 ```
 
 # BAYESIAN MODELS
@@ -538,11 +531,15 @@ h_cse_fit <- brm(formula = h_cse_formula, data = train_df, prior = h_cse_priors,
 
 
 ```{r specifying models to test conditions}
+positive_half_normal_prior <- prior("gamma", shape = 2, scale = 10, lb = 0)
+
+negative_half_normal_prior <- prior("gamma", shape = 2, scale = 10, nl = -Inf)
+
 h_cse_conditions_priors <- c(
   set_prior("normal(0, 60)", class = "b", coef = "congruencyincongruent"),
   set_prior("normal(0, 30)", class = "b", coef = "prev_congruencyincongruent"),
-  set_prior("normal(0, 5)", class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:condition_positive", hb = 0),
-  set_prior("normal(0, 5)", class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:condition_negative", lb = 0),
+  set_prior(negatuve_half_normal_prior, class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:condition_positive"),
+  set_prior(positive_half_normal_prior, class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:condition_negative"),
   set_prior("normal(0, 5)", class = "b", coef = "congruencyincongruent:prev_congruencyincongruent:condition_neutral"),
   set_prior("normal(0, 10)", class = "b"),
   set_prior("student_t(5, 0, 10)", class = "sd"),
@@ -568,16 +565,12 @@ h_cse_conditions_time_elapsed_priors <- c(
   set_prior("student_t(5, 0, 10)", class = "sd"),
   set_prior("lkj(1.5)", class = "cor"),
   set_prior("normal(0, 5)", class = "b", coef = "motime_elapsed"),
-  set_prior("normal(0, 3)", class = "b", coef = "motime_elapsed:condition_positive"),
-  set_prior("normal(0, 3)", class = "b", coef = "motime_elapsed:condition_negative"),
   set_prior("normal(0, 10)", class = "b")
 )
 
-h_cse_conditions_time_elapsed_formula <- bf(rt ~ congruency * prev_congruency * 
-              (condition_positive + condition_negative + condition_neutral) + 
-              mo(time_elapsed) * condition_positive + 
-              mo(time_elapsed) * condition_negative + 
-              (1 + congruency + prev_congruency | participant_id))
+h_cse_conditions_time_elapsed_formula <- bf(
+  rt ~ congruency * prev_congruency * mo(time_elapsed) + (condition_positive + condition_negative + condition_neutral) + (1 + congruency + prev_congruency | participant_id)
+  )
 
 h_cse_conditions_time_elapsed_fit <- brm(formula = h_cse_conditions_time_elapsed_formula, data = train_df, prior = h_cse_conditions_time_elapsed_priors, seed = 1234, sample_prior = "yes", save_model = file.path(model_dir, "h_cse_conditions_time_elapsed.stan"), file = file.path(model_dir, "h_cse_conditions_time_elapsed"), init = 0, iter = 10000, warmup = 2000, cores =  16, file_refit = "on_change")
 ```
@@ -596,11 +589,7 @@ h_cse_motoric_priors <- c(
   set_prior("lkj(2)", class = "cor")
 )
 
-h_cse_motoric_formula <- bf(rt ~ congruency * prev_congruency +
-                      congruency * prev_congruency * reversed_color_axes +
-                      congruency * prev_congruency * reversed_correct_responses +
-                      congruency * prev_congruency * finger +
-                      (1 + congruency + prev_congruency | participant_id))
+h_cse_motoric_formula <- bf(rt ~ congruency * prev_congruency * reversed_correct_responses * reversed_color_axes * finger + (1 + congruency + prev_congruency | participant_id))
 
 h_cse_motoric_fit <- brm(formula = h_cse:motoric_formula, data = train_df, prior = h_cse_motoric_priors, seed = 1234, sample_prior = "yes", save_model = file.path(model_dir, "h_cse_motoric.stan"), file = file.path(model_dir, "h_cse_motoric"), init = 0, iter = 10000, warmup = 2000, cores =  16, file_refit = "on_change")
 ```
