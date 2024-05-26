@@ -16,6 +16,7 @@ library(viridis)
 library(brms)
 library(lme4)
 library(lmerTest)
+library(pbkrtest)
 ```
 
 ```{r Dienes Bayes Factor 2019, author: Bence Palfi; to estimate bayesfactors based on a theoretical sd and model estimate}
@@ -136,6 +137,7 @@ return(output)
 
 ```{r read data}
 tidy_df <- readr::read_csv("data/test_stream.csv")
+whole_data_n <- nrow(tidy_df)
 ```
 
 ```{r generate prev trial data}
@@ -166,10 +168,12 @@ tidy_df <- tidy_df |>
 ```
 
 ```{r filter correct and non-first}
+
 tidy_df <- tidy_df |>
   dplyr::filter(first_trial != 1) |>
   dplyr::filter(correct == TRUE)
 
+filter_correct_and_non_first <- (whole_data_n - nrow(tidy_df)) / whole_data_n * 100
 ```
 
 ```{r outliers}
@@ -180,6 +184,9 @@ tidy_df <- tidy_df |>
   dplyr::mutate(rt_z = (rt - conditional_mean_rt) / conditional_sd_rt) |>
   dplyr::mutate(drop_outlier = ifelse(abs(rt_z) >= 3, 1, 0)) |>
   dplyr::filter(drop_outlier != 1)
+print(nrow(tidy_df))
+filtered_all_n <- (whole_data_n - nrow(tidy_df))
+filtered_all_p <- (whole_data_n - nrow(tidy_df)) / whole_data_n * 100
 ```
 
 ```{r base ce plot}
@@ -306,6 +313,121 @@ ggsave("plots/cse_rt_plot_cond.png", plot = cse_rt_plot_cond, width = 16, height
 print(cse_rt_plot_cond)
 ```
 
+```{r finger cse plot}
+cse_rt_data_finger <- tidy_df |>
+  dplyr::group_by(congruency, prev_congruency, finger) |>
+  dplyr::reframe(N = n(),
+                   mean_rt = mean(rt),
+                   sd_rt = sd(rt),
+                   se_rt = sd_rt / sqrt(N))
+
+cse_rt_plot_cond <- cse_rt_data_finger |>
+  ggplot() +
+  aes(x=factor(prev_congruency, levels=c("congruent", "incongruent")), y=mean_rt, group=factor(congruency,level=c("congruent", "incongruent"))) +
+  geom_point(size=1.5) +
+  geom_path(linewidth=0.7, aes(linetype=congruency)) +
+  scale_linetype_manual(values=c("solid", "dashed"), labels=c("Congruent", "Incongruent")) +
+  geom_errorbar(linewidth=0.5,aes(ymin=mean_rt-se_rt,
+                    ymax=mean_rt+se_rt,
+                    width=.2)) +
+  papaja::theme_apa(base_family = "Times") +
+  facet_grid(cols = vars(finger), labeller = labeller(finger = c(both = "Both fingers", index = "Index", middle = "Middle"))) +
+  labs(x="Previous Congruency",
+       y= "Reaction time (ms)",
+       shape="Current Congruency",
+       linetype="Current Congruency") +
+  scale_x_discrete(labels = c("Congruent", "Incongruent")) +
+  scale_y_continuous(n.breaks = 6, limits = c(750, 830)) +
+  theme(legend.key.width = unit(1,"cm")) +
+  theme(legend.text = element_text(size=8),
+        legend.title = element_text(size=10),
+        legend.justification = c(0.5, 0.5),
+        legend.direction = "vertical",
+        axis.text.x = element_text(size=6),
+        axis.title = element_text(size=8),
+        strip.text.x.top = element_text(size=6))
+
+ggsave("plots/cse_rt_plot_fingers.png", plot = cse_rt_plot_finger, width = 16, height = 9, units = "cm", dpi = 320)
+print(cse_rt_plot_fingers)
+```
+
+```{r cse_rt_plot_various axes}
+cse_rt_data_color_axes <- tidy_df |>
+  dplyr::group_by(congruency, prev_congruency, reversed_color_axes) |>
+  dplyr::reframe(N = n(),
+                   mean_rt = mean(rt),
+                   sd_rt = sd(rt),
+                   se_rt = sd_rt / sqrt(N))
+
+cse_rt_plot_color_axes <- cse_rt_data_color_axes |>
+  ggplot() +
+  aes(x=factor(prev_congruency, levels=c("congruent", "incongruent")), y=mean_rt, group=factor(congruency,level=c("congruent", "incongruent"))) +
+  geom_point(size=1.5) +
+  geom_path(linewidth=0.7, aes(linetype=congruency)) +
+  scale_linetype_manual(values=c("solid", "dashed"), labels=c("Congruent", "Incongruent")) +
+  geom_errorbar(linewidth=0.5,aes(ymin=mean_rt-se_rt,
+                    ymax=mean_rt+se_rt,
+                    width=.2)) +
+  papaja::theme_apa(base_family = "Times") +
+  facet_grid(cols = vars(reversed_color_axes), labeller = labeller(reversed_color_axes = c(`FALSE` = "F - J : Red - Green", `TRUE` = "F - J : Blue - Yellow"))) +
+  labs(x="Previous Congruency",
+       y= "Reaction time (ms)",
+       shape="Current Congruency",
+       linetype="Current Congruency") +
+  scale_x_discrete(labels = c("Congruent", "Incongruent")) +
+  scale_y_continuous(n.breaks = 6, limits = c(750, 830)) +
+  theme(legend.key.width = unit(1,"cm")) +
+  theme(legend.text = element_text(size=8),
+        legend.title = element_text(size=10),
+        legend.justification = c(0.5, 0.5),
+        legend.direction = "vertical",
+        axis.text.x = element_text(size=6),
+        axis.title = element_text(size=8),
+        strip.text.x.top = element_text(size=6))
+
+ggsave("plots/cse_rt_plot_color_axes.png", plot = cse_rt_plot_color_axes, width = 16, height = 9, units = "cm", dpi = 320)
+print(cse_rt_plot_color_axes)
+```
+
+```{r cse reversed correct respones plot}
+cse_rt_data_correct_axes <- tidy_df |>
+  dplyr::group_by(congruency, prev_congruency, reversed_correct_responses) |>
+  dplyr::reframe(N = n(),
+                   mean_rt = mean(rt),
+                   sd_rt = sd(rt),
+                   se_rt = sd_rt / sqrt(N))
+
+cse_rt_plot_correct_axes <- cse_rt_data_correct_axes |>
+  ggplot() +
+  aes(x=factor(prev_congruency, levels=c("congruent", "incongruent")), y=mean_rt, group=factor(congruency,level=c("congruent", "incongruent"))) +
+  geom_point(size=1.5) +
+  geom_path(linewidth=0.7, aes(linetype=congruency)) +
+  scale_linetype_manual(values=c("solid", "dashed"), labels=c("Congruent", "Incongruent")) +
+  geom_errorbar(linewidth=0.5,aes(ymin=mean_rt-se_rt,
+                    ymax=mean_rt+se_rt,
+                    width=.2)) +
+  papaja::theme_apa(base_family = "Times") +
+  facet_grid(cols = vars(reversed_correct_responses), labeller = labeller(reversed_correct_responses = c(`FALSE` = "F - J : Red - Green", `TRUE` = "F - J : Green - Red"))) +
+  labs(x="Previous Congruency",
+       y= "Reaction time (ms)",
+       shape="Current Congruency",
+       linetype="Current Congruency") +
+  scale_x_discrete(labels = c("Congruent", "Incongruent")) +
+  scale_y_continuous(n.breaks = 6, limits = c(750, 830)) +
+  theme(legend.key.width = unit(1,"cm")) +
+  theme(legend.text = element_text(size=8),
+        legend.title = element_text(size=10),
+        legend.justification = c(0.5, 0.5),
+        legend.direction = "vertical",
+        axis.text.x = element_text(size=6),
+        axis.title = element_text(size=8),
+        strip.text.x.top = element_text(size=6))
+
+ggsave("plots/cse_rt_plot_correct_axes.png", plot = cse_rt_plot_correct_axes, width = 16, height = 9, units = "cm", dpi = 320)
+print(cse_rt_plot_correct_axes)
+```
+
+
 ```{r training data}
 train_df <- tidy_df |>
   dplyr::select(participant_id, rt, congruency, condition, arousal_mean_rating, valence_mean_rating, finger, reversed_color_axes, reversed_correct_responses, prev_congruency, time_elapsed) |>
@@ -348,6 +470,26 @@ source("f_cse_motoric.R")
 source("f_cse_motoricBF.R")
 ```
 
+```{r freq ce model summary}
+f_ce <- readRDS("models/freq_ce_model.rds")
+f_ce_summary <- summary(f_ce)
+```
+
+```{r freq cse model summary}
+f_cse <- readRDS("models/freq_cse_model.rds")
+f_cse_summary <- summary(f_cse)
+
+```
+
+```{r freq cse conditions model summary}
+f_cse_conditions <- readRDS("models/freq_cse_conditions_model.rds")
+
+```
+
+```{r motoric summary}
+# f_cse_motoric <- readRDS("models/freq_cse_motoric_model.rds")
+```
+
 # BAYESIAN MODELS
 
 ```{r ce bayes congruency model}
@@ -368,5 +510,26 @@ source("h_cse_conditions_time_elapsed.R")
 
 ```{r motoric mappings model bayes}
 source("h_cse_motoric.R")
+```
+
+```{r read bayesian models for hypotheses}
+h_ce <- readRDS("models/h_ce.rds")
+h_cse <- readRDS("models/h_cse.rds")
+h_cse_conditions <- readRDS("models/h_cse_conditions.rds")
+h_cse_conditions_time_elapsed <- readRDS("models/h_cse_conditions_time_elapsed.rds")
+h_cse_motoric <- readRDS("models/h_cse_motoric.rds")
+```
+
+```{r h_ce model investigation}
+#summary(h_ce)
+ce_effect_posterior <- pp_check(h_ce, type = "dens_overlay") + labs(y = "Posterior distribution of model and observed")
+#ce_effect_estimates <- plot(conditional_effects(h_ce), theme = theme_apa(base_family = "Times"))
+```
+
+```{r h_cse model investigation}
+#cse_effect_posterior <- plot(h_cse, variable = "congruencyincongruent:prev_congruencyincongruent")
+
+cse_effect_estimates <- plot(conditional_effects(h_cse, effects = c("congruency:prev_congruency")), theme = theme_apa(base_family = "Times"), plot = F)[[1]] + scale_colour_grey() + scale_fill_grey() + labs(y = "Reaction time (ms)",
+                                                                                                                                                                                                              x = "Congruency")
 ```
 
