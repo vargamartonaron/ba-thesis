@@ -13,4 +13,4 @@ h_cse_priors <- c(
 
 h_cse_formula <- bf(rt ~ congruency * prev_congruency + (1 + congruency + prev_congruency | participant_id))
 
-h_cse_fit <- brm(formula = h_cse_formula, data = train_df, prior = h_cse_priors, seed = 1234, sample_prior = "yes", save_model = file.path(model_dir, "h_cse_model.stan"), file = file.path(model_dir, "h_cse"), init = 0, iter = 10000, warmup = 2000, cores =  16, file_refit = "on_change")
+h_cse_fit <- brm(formula = h_cse_formula, data = train_df, save_pars = save_pars(all = TRUE), prior = h_cse_priors, seed = 1234, sample_prior = "yes", save_model = file.path(model_dir, "h_cse_model.stan"), file = file.path(model_dir, "h_cse"), init = 0, iter = 10000, warmup = 2000, cores =  16, file_refit = "on_change")

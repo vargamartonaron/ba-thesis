@@ -19,4 +19,4 @@ h_cse_conditions_formula <- bf(rt ~ congruency * prev_congruency *
               (condition_positive + condition_negative + condition_neutral) + 
               (1 + congruency + prev_congruency | participant_id))
 
-h_cse_conditions_fit <- brm(formula = h_cse_conditions_formula, data = train_df, prior = h_cse_conditions_priors, seed = 1234, sample_prior = "yes", save_model = file.path(model_dir, "h_cse_conditions.stan"), file = file.path(model_dir, "h_cse_conditions"), init = 0, iter = 10000, warmup = 2000, cores =  16, file_refit = "on_change")
+h_cse_conditions_fit <- brm(formula = h_cse_conditions_formula, save_pars = save_pars(all = TRUE), data = train_df, prior = h_cse_conditions_priors, seed = 1234, sample_prior = "yes", save_model = file.path(model_dir, "h_cse_conditions.stan"), file = file.path(model_dir, "h_cse_conditions"), init = 0, iter = 10000, warmup = 2000, cores =  16, file_refit = "on_change")

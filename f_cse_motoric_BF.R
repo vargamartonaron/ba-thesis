@@ -1,6 +1,6 @@
 source("dienes_BF.R")
 
-freq_cse_model <- readRDS("models/freq_cse_model")
+freq_cse_model <- readRDS("models/freq_cse_model.rds")
 
 cse_summary <- summary(freq_cse_model)
 cse_summary_coefs <- coef(cse_summary)
@@ -8,7 +8,7 @@ cse_scale <- 25 # previously measured cse estimates
 cse_mean_effect <- cse_summary_coefs["congruencyincongruent:prev_congruencyincongruent", "Estimate"]
 cse_se_effect <- cse_summary_coefs["congruencyincongruent:prev_congruencyincongruent", "Std. Error"]
 
-freq_cse_motoric_model <- readRDS("models/freq_cse_motoric_model")
+freq_cse_motoric_model <- readRDS("models/freq_cse_motoric_model.rds")
 
 cse_reversed_color_axes_summary <- summary(freq_cse_motoric_model)
 cse_reversed_color_axes_summary_coefs <- coef(cse_reversed_color_axes_summary)

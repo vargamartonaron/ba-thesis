@@ -23,4 +23,4 @@ h_cse_conditions_time_elapsed_formula <- bf(rt ~ congruency * prev_congruency * 
 h_cse_conditions_time_elapsed_fit <- brm(formula = h_cse_conditions_time_elapsed_formula,
 					 data = train_df, 
 				       	prior = h_cse_conditions_time_elapsed_priors, 
-					 seed = 1234, sample_prior = "yes", save_model = file.path(model_dir, "h_cse_conditions_time_elapsed.stan"), file = file.path(model_dir, "h_cse_conditions_time_elapsed"), init = 0, iter = 10000, warmup = 2000, cores = 4, file_refit = "always")
+					 seed = 1234, sample_prior = "yes", save_pars = save_pars(all = TRUE), save_model = file.path(model_dir, "h_cse_conditions_time_elapsed.stan"), file = file.path(model_dir, "h_cse_conditions_time_elapsed"), init = 0, iter = 10000, warmup = 2000, cores = 4, file_refit = "always")
