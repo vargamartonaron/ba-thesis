@@ -79,5 +79,5 @@ ev_for_cse_fingermiddle <- subset(data.frame(cse_fingermiddle_range_test), BF > 
 low_cse_fingermiddle_threshold <- min(ev_for_cse_fingermiddle$sdtheory)
 high_cse_fingermiddle_threshold <- max(ev_for_cse_fingermiddle$sdtheory)
 sink("f_cse_motoric_BF_fingermiddle.txt")
-cat(low_cse_fingermiddle_threshold, high_cse_fingemiddler_threshold, cse_fingermiddle_BF, ", ")
+cat(low_cse_fingermiddle_threshold, high_cse_fingermiddle_threshold, cse_fingermiddle_BF, ", ")
 sink()
