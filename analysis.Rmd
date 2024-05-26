@@ -470,26 +470,6 @@ source("f_cse_motoric.R")
 source("f_cse_motoricBF.R")
 ```
 
-```{r freq ce model summary}
-f_ce <- readRDS("models/freq_ce_model.rds")
-f_ce_summary <- summary(f_ce)
-```
-
-```{r freq cse model summary}
-f_cse <- readRDS("models/freq_cse_model.rds")
-f_cse_summary <- summary(f_cse)
-
-```
-
-```{r freq cse conditions model summary}
-f_cse_conditions <- readRDS("models/freq_cse_conditions_model.rds")
-
-```
-
-```{r motoric summary}
-# f_cse_motoric <- readRDS("models/freq_cse_motoric_model.rds")
-```
-
 # BAYESIAN MODELS
 
 ```{r ce bayes congruency model}
@@ -513,23 +493,40 @@ source("h_cse_motoric.R")
 ```
 
 ```{r read bayesian models for hypotheses}
-h_ce <- readRDS("models/h_ce.rds")
-h_cse <- readRDS("models/h_cse.rds")
-h_cse_conditions <- readRDS("models/h_cse_conditions.rds")
-h_cse_conditions_time_elapsed <- readRDS("models/h_cse_conditions_time_elapsed.rds")
 h_cse_motoric <- readRDS("models/h_cse_motoric.rds")
 ```
 
 ```{r h_ce model investigation}
-#summary(h_ce)
-ce_effect_posterior <- pp_check(h_ce, type = "dens_overlay") + labs(y = "Posterior distribution of model and observed")
-#ce_effect_estimates <- plot(conditional_effects(h_ce), theme = theme_apa(base_family = "Times"))
+h_ce <- readRDS("models/h_ce.rds")
+summary(h_ce)
+ce_effect_posterior <- pp_check(h_ce, type = "dens_overlay") + labs(y = "Posterior distribution of model")
+ce_effect_estimates <- plot(conditional_effects(h_ce), theme = theme_apa(base_family = "Times"))[[1]] + labs(x = "Congruency",
+                                                                                                             y = "Predicted reaction time (ms)")
 ```
 
 ```{r h_cse model investigation}
-#cse_effect_posterior <- plot(h_cse, variable = "congruencyincongruent:prev_congruencyincongruent")
+h_cse <- readRDS("models/h_cse.rds")
 
 cse_effect_estimates <- plot(conditional_effects(h_cse, effects = c("congruency:prev_congruency")), theme = theme_apa(base_family = "Times"), plot = F)[[1]] + scale_colour_grey() + scale_fill_grey() + labs(y = "Reaction time (ms)",
-                                                                                                                                                                                                              x = "Congruency")
+                                                                                                                                                                                                              x = "Congruency",
+                                                                                                                                                                                                              color = "Previous congruency",
+                                                                                                                                                                                                              fill = "Previous congruency")
+cse_effect_posterior <- pp_check(h_cse, type = "dens_overlay", resp = "congruency_incongruent:prev_congruencyincongruent") + labs(y = "Posterior distribution of model")
+
+```
+
+```{r}
+h_cse_conditions <- readRDS("models/h_cse_conditions.rds")
+
+
+cse_effect_estimates <- plot(conditional_effects(h_cse_conditions, effects = c("congruency:prev_congruency"), conditions = conditions), theme = theme_apa(base_family = "Times"), plot = F)[[1]] + scale_colour_grey() + scale_fill_grey() + labs(y = "Reaction time (ms)",
+                                                                                                                                                                                                              x = "Congruency",
+                                                                                                                                                                                                              color = "Previous congruency",
+                                                                                                                                                                                                              fill = "Previous congruency")
+```
+
+```{r}
+h_cse_conditions_time_elapsed <- readRDS("models/h_cse_conditions_time_elapsed.rds")
+
 ```
 
