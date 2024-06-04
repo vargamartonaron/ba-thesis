@@ -20,4 +20,5 @@ if you'd like to read the thesis, please ask for a .pdf file at martonaronvarga 
 - dienes_BF.R - script calculating Dienes Bayes Factor
 - tidy_data.Rmd - data cleaning Rmarkdown file
 - analysis.Rmd - formal analysis of the experiment data
+- data/test_stream.csv - anonimized dataframe, see tidy_data.Rmd for its generator
 
