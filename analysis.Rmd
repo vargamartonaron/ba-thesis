@@ -144,7 +144,8 @@ whole_data_n <- nrow(tidy_df)
 tidy_df <- tidy_df |>
   dplyr::arrange(participant_id, as.numeric(trial_index)) |>
   dplyr::mutate(prev_congruency = dplyr::lag(congruency),
-                prev_rt = dplyr::lag(rt))
+                prev_rt = dplyr::lag(rt)
+                prev_correct = dplyr::lag(correct))
 ```
 
 ```{r generate accuracy data}
@@ -171,7 +172,8 @@ tidy_df <- tidy_df |>
 
 tidy_df <- tidy_df |>
   dplyr::filter(first_trial != 1) |>
-  dplyr::filter(correct == TRUE)
+  dplyr::filter(correct == TRUE) |>
+  dplyr::filter(prev_correct == TRUE)
 
 filter_correct_and_non_first <- (whole_data_n - nrow(tidy_df)) / whole_data_n * 100
 ```
